@@ -9,6 +9,7 @@ COPY supervisor/supervisord.conf /etc/supervisor/supervisord.conf
 COPY supervisor/crontab /etc/crontab
 
 COPY src/* /src/agent/
+RUN chmod +x /src/agent/main.py
 
 EXPOSE 9001
 
