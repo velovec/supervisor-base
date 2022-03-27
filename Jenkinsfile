@@ -32,6 +32,20 @@ pipeline {
                 sh "docker push ${env.DOCKER_REPOSITORY}/supervisor-base:latest"
             }
         }
+
+        stage ('Build downstream') {
+            when {
+                branch 'master'
+            }
+
+            steps {
+                parallel(
+                    build "../bloomgenerator/master"
+                    build "../btcaddr_checker/main"
+                    build "../btcaddrgen/master"
+                )
+            }
+        }
     }
 
     post {
