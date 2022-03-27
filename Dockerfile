@@ -9,4 +9,5 @@ COPY supervisor/supervisord.conf /etc/supervisor/supervisord.conf
 
 EXPOSE 9001
 
-ENTRYPOINT ["/usr/bin/supervisord", "-c", ""]
+ENTRYPOINT ["/usr/bin/supervisord"]
+CMD ["-c", "/etc/supervisor/supervisord.conf"]
