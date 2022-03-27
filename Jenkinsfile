@@ -38,22 +38,10 @@ pipeline {
                 branch 'master'
             }
 
-            parallel {
-                stage ('Build bloomgenerator') {
-                    steps {
-                        build "../bloomgenerator/master"
-                    }
-                }
-                stage ('Build btcaddr_checker') {
-                    steps {
-                        build "../btcaddr_checker/main"
-                    }
-                }
-                stage ('Build btcaddrgen') {
-                    steps {
-                        build "../btcaddrgen/master"
-                    }
-                }
+            steps {
+                build "../bloomgenerator/master"
+                build "../btcaddr_checker/main"
+                build "../btcaddrgen/master"
             }
         }
     }
