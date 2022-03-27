@@ -8,7 +8,7 @@ RUN apt-get update && \
 COPY supervisor/supervisord.conf /etc/supervisor/supervisord.conf
 COPY supervisor/crontab /etc/crontab
 
-COPY src/* /src/agent/
+COPY src/agent /src
 RUN chmod +x /src/agent/main.py
 
 EXPOSE 9001

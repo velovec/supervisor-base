@@ -1,3 +1,4 @@
+import os
 import time
 
 from xmlrpc.client import ServerProxy
@@ -16,3 +17,8 @@ class Agent:
         while True:
             self.__get_tasks()
             time.sleep(5)
+
+
+if __name__ == "__main__":
+    a = Agent(os.environ.get("SERVER_URL"))
+    a.run()
