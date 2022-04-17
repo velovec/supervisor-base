@@ -35,9 +35,12 @@ class Agent(threading.Thread):
             exchange='',
             routing_key=properties.reply_to,
             body=json.dumps(response),
-            properties=pika.BasicProperties(headers={
-                "agent-id": self.agent_id
-            })
+            properties=pika.BasicProperties(
+                headers={
+                    "agent-id": self.agent_id
+                },
+                correlation_id=properties.correlation_id
+            )
         )
         ch.basic_ack(delivery_tag=method_frame.delivery_tag)
 
