@@ -1,7 +1,11 @@
 #!/usr/bin/env python3
-
 import event
+import os
+import pika
 import sys
+import uuid
+
+from agent import Agent
 
 
 def write_stdout(s: str) -> None:
@@ -23,24 +27,33 @@ def read_event() -> event.Event:
     return event.Event(headers=headers, data=data)
 
 
-def process_event(ev: event.Event) -> bool:
-    return True
+def read_agent_id() -> str:
+    if os.path.exists("agent-id"):
+        with open("agent-id", 'r') as agent_id:
+            return agent_id.read().strip()
+    else:
+        agent_uuid = str(uuid.uuid4())
+        with open("agent-id", 'w') as agent_id:
+            agent_id.write(agent_uuid)
+        return agent_uuid
 
 
 def main():
-    while 1:
-        # transition from ACKNOWLEDGED to READY
-        write_stdout('READY\n')
+    with pika.BlockingConnection() as conn:
+        agent_id = read_agent_id()
+        agent = Agent(agent_id, conn)
+        agent.setDaemon(True)
+        agent.start()
 
-        # read event
-        ev = read_event()
+        while agent.is_running():
+            # transition from ACKNOWLEDGED to READY
+            write_stdout('READY\n')
 
-        # transition from READY to ACKNOWLEDGED
-        if process_event(ev):
+            # read event
+            ev = read_event()
+
+            # transition from READY to ACKNOWLEDGED
+            agent.queue_event(ev)
             write_stdout('RESULT 2\nOK')
-        else:
-            write_stdout('RESULT 4\nFAIL')
 
-
-if __name__ == '__main__':
-    main()
+        agent.join()
