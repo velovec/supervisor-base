@@ -57,3 +57,6 @@ def main():
             write_stdout('RESULT 2\nOK')
 
         agent.join()
+
+if __name__ == "__main__":
+    main()
