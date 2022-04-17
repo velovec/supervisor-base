@@ -47,22 +47,21 @@ class Agent(threading.Thread):
         channel.basic_consume("superfleet.agent-%s" % self.agent_id, self.on_message)
 
         while self.is_running():
-            try:
-                event = self.event_queue.get(False)
-
-                channel.basic_publish(
-                    exchange='',
-                    routing_key='superfleet.server',
-                    body=json.dumps({
-                        "headers": event.headers,
-                        "data": event.data
-                    }),
-                    properties=pika.BasicProperties(headers={
-                        "agent-id": self.agent_id
-                    })
-                )
-            except queue.Empty:
+            if self.event_queue.empty():
                 continue
+
+            event = self.event_queue.get()
+            channel.basic_publish(
+                exchange='',
+                routing_key='superfleet.server',
+                body=json.dumps({
+                    "headers": event.headers,
+                    "data": event.data
+                }),
+                properties=pika.BasicProperties(headers={
+                    "agent-id": self.agent_id
+                })
+            )
 
     def stop(self):
         self.running = False
