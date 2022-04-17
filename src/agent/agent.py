@@ -30,7 +30,7 @@ class Agent(threading.Thread):
     def on_message(self, ch, method_frame, properties, body):
         command = json.loads(body)
 
-        response = self.rpc_client.__request(command["method"], command["params"])
+        response = self.rpc_client.__getattr__(command["method"])(*command["params"])
         ch.basic_publish(
             exchange='',
             routing_key=properties.reply_to,
