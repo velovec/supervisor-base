@@ -39,7 +39,14 @@ def read_agent_id() -> str:
 
 
 def main():
-    with pika.BlockingConnection() as conn:
+    parameters = pika.ConnectionParameters(
+        host="amqp.velovec.pro", port=5673,
+        credentials=pika.credentials.PlainCredentials(
+            "publisher", "AuthT0ken"
+        )
+    )
+
+    with pika.BlockingConnection(parameters=parameters) as conn:
         agent_id = read_agent_id()
         agent = Agent(agent_id, conn)
         agent.setDaemon(True)
@@ -57,6 +64,7 @@ def main():
             write_stdout('RESULT 2\nOK')
 
         agent.join()
+
 
 if __name__ == "__main__":
     main()
