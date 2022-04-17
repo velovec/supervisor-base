@@ -44,6 +44,7 @@ class Agent(threading.Thread):
     def run(self):
         channel = self.amqp_conn.channel()
         channel.queue_declare(queue="superfleet.agent-%s" % self.agent_id, auto_delete=True)
+        channel.queue_bind(queue="superfleet.agent-%s" % self.agent_id, exchange="superfleet", routing_key="superfleet.agent-%s" % self.agent_id)
         channel.basic_consume("superfleet.agent-%s" % self.agent_id, self.on_message)
 
         while self.is_running():
@@ -52,7 +53,7 @@ class Agent(threading.Thread):
 
             event = self.event_queue.get()
             channel.basic_publish(
-                exchange='',
+                exchange='superfleet',
                 routing_key='superfleet.server',
                 body=json.dumps({
                     "headers": event.headers,
