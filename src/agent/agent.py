@@ -48,21 +48,21 @@ class Agent(threading.Thread):
         channel.basic_consume("superfleet.agent-%s" % self.agent_id, self.on_message)
 
         while self.is_running():
-            if self.event_queue.empty():
-                continue
+            self.amqp_conn.process_data_events(time_limit=0.1)
 
-            event = self.event_queue.get()
-            channel.basic_publish(
-                exchange='superfleet',
-                routing_key='superfleet.server',
-                body=json.dumps({
-                    "headers": event.headers,
-                    "data": event.data
-                }),
-                properties=pika.BasicProperties(headers={
-                    "agent-id": self.agent_id
-                })
-            )
+            while not self.event_queue.empty():
+                event = self.event_queue.get()
+                channel.basic_publish(
+                    exchange='superfleet',
+                    routing_key='superfleet.server',
+                    body=json.dumps({
+                        "headers": event.headers,
+                        "data": event.data
+                    }),
+                    properties=pika.BasicProperties(headers={
+                        "agent-id": self.agent_id
+                    })
+                )
 
     def stop(self):
         self.running = False
