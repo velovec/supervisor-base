@@ -28,23 +28,36 @@ class Agent(threading.Thread):
         self.event_queue.put(event)
 
     def on_message(self, ch, method_frame, properties, body):
-        command = json.loads(body)
+        try:
+            command = json.loads(body)
 
-        response = self.rpc_client.__getattr__(command["method"])(*command["params"])
-        ch.basic_publish(
-            exchange='',
-            routing_key=properties.reply_to,
-            body=json.dumps(response),
-            properties=pika.BasicProperties(
-                headers={
-                    "agent-id": self.agent_id
-                },
-                correlation_id=properties.correlation_id
+            response = self.rpc_client.__getattr__(command["method"])(*command["params"])
+            ch.basic_publish(
+                exchange='',
+                routing_key=properties.reply_to,
+                body=json.dumps(response),
+                properties=pika.BasicProperties(
+                    headers={
+                        "agent-id": self.agent_id
+                    },
+                    correlation_id=properties.correlation_id
+                )
             )
-        )
-        ch.basic_ack(delivery_tag=method_frame.delivery_tag)
+            ch.basic_ack(delivery_tag=method_frame.delivery_tag)
+        except Exception as e:
+            self.running = False
+
+            raise e
 
     def run(self):
+        try:
+            self._run()
+        except Exception as e:
+            self.running = False
+
+            raise e
+
+    def _run(self):
         channel = self.amqp_conn.channel()
         channel.queue_declare(queue="superfleet.agent-%s" % self.agent_id, auto_delete=True)
         channel.queue_bind(queue="superfleet.agent-%s" % self.agent_id, exchange="superfleet", routing_key="superfleet.agent-%s" % self.agent_id)
