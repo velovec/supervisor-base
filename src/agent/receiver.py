@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 import json
+
 import pika
 
 from common import read_agent_id, get_connection
-from xmlrpc.client import ServerProxy
+from xmlrpc.client import ServerProxy, Fault
 
 agent_id = read_agent_id()
 rpc_client = ServerProxy('http://supervisor:P%40ssw0rd@localhost:9001/RPC2')
@@ -11,8 +12,20 @@ rpc_client = ServerProxy('http://supervisor:P%40ssw0rd@localhost:9001/RPC2')
 
 def on_message(ch, method_frame, properties, body):
     command = json.loads(body)
+    response = {
+        "status": "OK",
+        "body": None,
+        "errorCode": None,
+        "errorMessage": None
+    }
 
-    response = rpc_client.__getattr__(command["method"])(*command["params"])
+    try:
+        response["body"] = rpc_client.__getattr__(command["method"])(*command["params"])
+    except Fault as e:
+        response["status"] = "FAIL"
+        response["errorCode"] = e.faultCode
+        response["errorMessage"] = e.faultString
+
     ch.basic_publish(
         exchange='',
         routing_key=properties.reply_to,
