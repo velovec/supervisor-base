@@ -6,7 +6,7 @@ parameters = pika.ConnectionParameters(
     host="amqp.velovec.pro", port=5673,
     credentials=pika.credentials.PlainCredentials(
         "publisher", "AuthT0ken"
-    ), heartbeat=None,
+    ), heartbeat=5,
     connection_attempts=1024, retry_delay=1,
     socket_timeout=300, stack_timeout=360
 )
